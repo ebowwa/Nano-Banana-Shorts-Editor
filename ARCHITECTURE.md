@@ -62,38 +62,44 @@ session = GeminiLiveSession(api_key="...", enable_code_execution=True)
 ```python
 from media_processor import VideoFrameExtractor, ImageUpscaler
 
-# Extract frames for AI analysis
-extractor = VideoFrameExtractor(frame_interval_seconds=1)
-frames = extractor.extract_frames("input.mp4", "frames/")
-
-# Enhance extracted frames
-upscaler = ImageUpscaler(model_name="modelx4")
-upscaler.process("frames/", "enhanced_frames/")
+# Post-AI inference: Extract only frames identified by Gemini
+selected_timestamps = gemini_analysis["frames_to_edit"]
+extractor = VideoFrameExtractor()
+for timestamp in selected_timestamps:
+    frame = extractor.extract_frame_at_time("input.mp4", timestamp)
+    
+# Apply AI-determined enhancements to selected frames
+enhancement_specs = gemini_analysis["enhancement_instructions"]
+upscaler = ImageUpscaler(model_name=enhancement_specs["upscale_model"])
+upscaler.process(selected_frames, enhanced_frames)
 ```
 
 ## Planned Workflow
 
-### Phase 1: Video Upload & Preprocessing
+### Phase 1: Video Upload & Initial Processing
 1. User uploads source video
-2. **media-processor** extracts frames at optimal intervals
-3. Frames prepared for AI analysis
+2. Video prepared for AI analysis (direct processing or initial frame extraction)
 
-### Phase 2: AI Analysis & Decision Making
-1. **ai-proxy-core** sends frames to Gemini for analysis
-2. AI identifies:
-   - Objects requiring effects/enhancements
-   - Optimal moments for text overlays
-   - Vector points for augmentation
-   - Scene transitions and key moments
+### Phase 2: AI Analysis & Decision Making (Primary Intelligence Layer)
+1. **ai-proxy-core** sends video/frames to Gemini for comprehensive analysis
+2. Gemini AI determines:
+   - Which specific frames need editing/enhancement
+   - What type of effects should be applied to each frame
+   - Optimal moments for text overlays and positioning
+   - Vector points for augmentation and object tracking
+   - Scene transitions and key moments for enhancement
 
-### Phase 3: Content Enhancement
-1. **ai-proxy-core** generates overlay content, translations, effects
-2. **media-processor** applies enhancements to identified frames
-3. Upscaling and quality improvements applied
+### Phase 3: Targeted Frame Processing (Post-AI Inference)
+1. Based on Gemini's analysis, **media-processor** extracts only the frames identified for editing
+2. **ai-proxy-core** generates specific overlay content, translations, and effects for identified frames
+3. **media-processor** applies targeted enhancements:
+   - Upscaling specific frames as determined by AI
+   - Processing only frames that need modification
+   - Applying effects to AI-identified objects and regions
 
-### Phase 4: Video Reconstruction
-1. Enhanced frames reassembled into final video
-2. Effects, text overlays, and enhancements applied
+### Phase 4: Video Reconstruction & Output
+1. Enhanced frames reintegrated into original video timeline
+2. Effects, text overlays, and enhancements applied at AI-determined timestamps
 3. Output optimized for target platform (social media, marketing)
 
 ## Use Cases
@@ -122,9 +128,12 @@ upscaler.process("frames/", "enhanced_frames/")
 
 ### Data Flow
 ```
-Video Input → Frame Extraction → AI Analysis → Enhancement Generation → Frame Processing → Video Output
-     ↓              ↓                ↓                    ↓                   ↓              ↓
-media-processor → media-processor → ai-proxy-core → ai-proxy-core → media-processor → Final Product
+Video Input → AI Analysis → Frame Selection → Enhancement Generation → Targeted Processing → Video Output
+     ↓             ↓              ↓                    ↓                      ↓               ↓
+  Raw Video → ai-proxy-core → ai-proxy-core → ai-proxy-core → media-processor → Final Product
+                  ↓                                                    ↑
+            (Gemini determines                                  (Processes only
+             which frames to edit)                              AI-selected frames)
 ```
 
 ### Key Integration Patterns
