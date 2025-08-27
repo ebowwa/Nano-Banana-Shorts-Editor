@@ -16,7 +16,6 @@ Nano-Banana-Shorts-Editor (Main Application)
 │   └── Unified AI interface
 └── media-processor (Media Operations Layer)
     ├── Video frame extraction
-    ├── Image processing & upscaling
     └── Format conversions
 ```
 
@@ -59,7 +58,7 @@ session = GeminiLiveSession(api_key="...", enable_code_execution=True)
 
 **Integration Points**:
 ```python
-from media_processor import VideoFrameExtractor, ImageUpscaler
+from media_processor import VideoFrameExtractor, WebPConverter
 
 # Post-AI inference: Extract only frames identified by Gemini
 selected_timestamps = gemini_analysis["frames_to_edit"]
