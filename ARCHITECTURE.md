@@ -54,7 +54,6 @@ session = GeminiLiveSession(api_key="...", enable_code_execution=True)
 
 **Key Features Used**:
 - **Frame Extraction**: Extract frames from videos at specified intervals
-- **AI Upscaling**: Enhance image quality using ONNX models
 - **Format Conversion**: Handle various media format transformations
 - **Batch Processing**: Process multiple files efficiently
 
@@ -68,10 +67,9 @@ extractor = VideoFrameExtractor()
 for timestamp in selected_timestamps:
     frame = extractor.extract_frame_at_time("input.mp4", timestamp)
     
-# Apply AI-determined enhancements to selected frames
-enhancement_specs = gemini_analysis["enhancement_instructions"]
-upscaler = ImageUpscaler(model_name=enhancement_specs["upscale_model"])
-upscaler.process(selected_frames, enhanced_frames)
+# Apply format conversions and basic processing as needed
+converter = WebPConverter()
+converter.process(selected_frames, processed_frames)
 ```
 
 ## Planned Workflow
@@ -92,10 +90,10 @@ upscaler.process(selected_frames, enhanced_frames)
 ### Phase 3: Targeted Frame Processing (Post-AI Inference)
 1. Based on Gemini's analysis, **media-processor** extracts only the frames identified for editing
 2. **ai-proxy-core** generates specific overlay content, translations, and effects for identified frames
-3. **media-processor** applies targeted enhancements:
-   - Upscaling specific frames as determined by AI
-   - Processing only frames that need modification
-   - Applying effects to AI-identified objects and regions
+3. **media-processor** applies targeted processing:
+   - Extracting specific frames as determined by AI
+   - Format conversions for frames that need modification
+   - Basic processing operations on AI-identified frames
 
 ### Phase 4: Video Reconstruction & Output
 1. Enhanced frames reintegrated into original video timeline
