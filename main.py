@@ -77,11 +77,26 @@ class NanoBananaEditor:
     
     async def analyze_video_with_ai(self, video_path: str) -> Dict[str, Any]:
         """
-        Phase 2: AI Analysis & Decision Making
-        Use Gemini to analyze video and determine enhancement opportunities
+        Phase 2: Send video directly to Gemini for frame-by-frame analysis
+        Gemini will identify specific timestamps to edit
         """
-        logger.info(f"Starting AI analysis of video: {video_path}")
+        logger.info(f"Sending video to Gemini for direct analysis: {video_path}")
         
+        # Use Gemini's video analysis capabilities
+        from src.video.gemini_video_analyzer import GeminiVideoAnalyzer
+        analyzer = GeminiVideoAnalyzer(self.ai_client)
+        
+        # Send video directly to Gemini (async)
+        analysis = await analyzer.analyze_video_for_edits(video_path)
+        
+        if "error" not in analysis:
+            logger.info(f"Gemini identified {len(analysis.get('edits_to_apply', []))} specific edit points")
+            # Convert to expected format
+            self._convert_gemini_analysis(analysis)
+            return analysis
+        
+        # Fallback to text prompt if video analysis fails
+        logger.warning("Video analysis failed, using text-based fallback")
         analysis_prompt = f"""
         Analyze this video for AI-powered editing opportunities. The video is located at: {video_path}
         
