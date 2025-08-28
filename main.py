@@ -57,12 +57,16 @@ class NanoBananaEditor:
             import sys
             sys.path.append('/home/ubuntu/repos/media-processor')
             from src.video.extractor import VideoFrameExtractor
+            from src.video.editor import VideoEditor
             
             self.frame_extractor = VideoFrameExtractor(
                 frame_interval_seconds=self.config.frame_interval_seconds,
                 max_frames=self.config.max_frames
             )
             logger.info("Initialized frame extractor")
+            
+            self.video_editor = VideoEditor()
+            logger.info("Initialized video editor")
             
         except ImportError as e:
             logger.error(f"Failed to import required components: {e}")
@@ -125,7 +129,11 @@ class NanoBananaEditor:
             try:
                 analysis_json = json.loads(analysis_text)
                 logger.info(f"Parsed AI analysis JSON with {len(analysis_json.get('frames_to_edit', []))} frames to edit")
-                return {"analysis": analysis_json, "raw_response": response}
+                logger.info(f"Text overlay suggestions: {len(analysis_json.get('text_overlay_suggestions', []))}")
+                # Log first text suggestion if exists
+                if analysis_json.get('text_overlay_suggestions'):
+                    logger.info(f"First text suggestion: {analysis_json['text_overlay_suggestions'][0]}")
+                return analysis_json
             except json.JSONDecodeError as json_err:
                 logger.error(f"Failed to parse AI response as JSON: {json_err}")
                 logger.error(f"Raw response: {analysis_text}")
@@ -253,13 +261,18 @@ class NanoBananaEditor:
             
             Path(output_path).parent.mkdir(parents=True, exist_ok=True)
             
-            if extracted_frames:
-                logger.info(f"Creating enhanced video with {len(extracted_frames)} processed segments")
-                shutil.copy2(input_path, output_path)
-                logger.info("Phase 4 complete: Enhanced video created (placeholder implementation)")
+            # Use the video editor to apply AI-suggested edits
+            logger.info("Applying AI-suggested edits to video")
+            edit_success = self.video_editor.create_enhanced_video(
+                input_path, 
+                output_path, 
+                ai_analysis
+            )
+            
+            if edit_success:
+                logger.info("Phase 4 complete: Enhanced video created with edits")
             else:
-                logger.warning("No frames were extracted, creating copy of original video")
-                shutil.copy2(input_path, output_path)
+                logger.warning("Some edits failed, but video was created")
             
             return ProcessingResult(
                 success=True,
