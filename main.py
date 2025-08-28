@@ -80,19 +80,40 @@ class NanoBananaEditor:
         Phase 2: Send video directly to Gemini for frame-by-frame analysis
         Gemini will identify specific timestamps to edit
         """
-        logger.info(f"Sending video to Gemini for direct analysis: {video_path}")
+        logger.info(f"Extracting frames from video for Gemini analysis: {video_path}")
         
-        # Use Gemini's video analysis capabilities
-        from src.video.gemini_video_analyzer import GeminiVideoAnalyzer
-        analyzer = GeminiVideoAnalyzer(self.ai_client)
+        # Use frame-based analysis (workaround until video support is fixed)
+        from src.video.gemini_frame_analyzer import GeminiFrameAnalyzer
+        analyzer = GeminiFrameAnalyzer(self.ai_client)
         
-        # Send video directly to Gemini (async)
-        analysis = await analyzer.analyze_video_for_edits(video_path)
+        # Extract key frames and send as images to Gemini
+        analysis = await analyzer.analyze_video_frames(video_path, num_frames=5)
         
         if "error" not in analysis:
             logger.info(f"Gemini identified {len(analysis.get('edits_to_apply', []))} specific edit points")
             # Convert to expected format
-            self._convert_gemini_analysis(analysis)
+            frames_to_edit = []
+            text_overlays = []
+            
+            for edit in analysis.get("edits_to_apply", []):
+                timestamp = edit.get("timestamp", 0)
+                edit_type = edit.get("edit_type", "")
+                
+                if edit_type == "text_overlay" and edit.get("text"):
+                    text_overlays.append({
+                        "timestamp": timestamp,
+                        "text": edit.get("text", ""),
+                        "position": edit.get("position", "center")
+                    })
+                    frames_to_edit.append({
+                        "start": timestamp,
+                        "end": timestamp + 2.0,
+                        "type": "text_overlay"
+                    })
+            
+            analysis["frames_to_edit"] = frames_to_edit
+            analysis["text_overlay_suggestions"] = text_overlays
+            
             return analysis
         
         # Fallback to text prompt if video analysis fails
