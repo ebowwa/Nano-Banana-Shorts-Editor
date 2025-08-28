@@ -8,11 +8,17 @@ We have a few models or a few different repositories to integrate in this one be
 2. Video Processed by AI model Gemini - Gemini process determining certain vector points, either objects of significance that can be enhanced or effected in some capacity, or times or moments of high value of text additions to frames.
    
    2.1 - This will use two repositories, internal, one of which being the AI proxy core for abstraction into just using these AI providers, and then the other one being a media processor, being able to extract frames from videos.
+
    2.2 - The Model would be given functions to read and write to videos, these would include a research/inference phrase, an editing phase,and review phase.
+
 3. Use Cases:
+
    3.1. overlay commentor content
+
    3.2. translations
+
    3.3. general editor functionality
+
    3.4. AR/MR Functionality   
    
 4. Output Updated video
